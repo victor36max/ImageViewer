@@ -34,7 +34,7 @@ open class GalleryViewController: UIPageViewController, ItemControllerDelegate {
 
     // DATASOURCE/DELEGATE
     fileprivate let itemsDelegate: GalleryItemsDelegate?
-    fileprivate let itemsDataSource: GalleryItemsDataSource
+    fileprivate weak var itemsDataSource: GalleryItemsDataSource?
     fileprivate let pagingDataSource: GalleryPagingDataSource
 
     // CONFIGURATION
@@ -424,8 +424,11 @@ open class GalleryViewController: UIPageViewController, ItemControllerDelegate {
     //ThumbnailsimageBlock
 
     @objc fileprivate func showThumbnails() {
+        guard let itemsDataSource = self.itemsDataSource else {
+            return
+        }
 
-        let thumbnailsController = ThumbnailsViewController(itemsDataSource: self.itemsDataSource)
+        let thumbnailsController = ThumbnailsViewController(itemsDataSource: itemsDataSource)
 
         if let closeButton = seeAllCloseButton {
             thumbnailsController.closeButton = closeButton
@@ -448,7 +451,7 @@ open class GalleryViewController: UIPageViewController, ItemControllerDelegate {
 
     open func page(toIndex index: Int) {
 
-        guard currentIndex != index && index >= 0 && index < self.itemsDataSource.itemCount() else { return }
+        guard currentIndex != index && index >= 0 && index < self.itemsDataSource?.itemCount() ?? 0 else { return }
 
         let imageViewController = self.pagingDataSource.createItemController(index)
         let direction: UIPageViewControllerNavigationDirection = index > currentIndex ? .forward : .reverse
@@ -471,11 +474,11 @@ open class GalleryViewController: UIPageViewController, ItemControllerDelegate {
         }
     }
 
-    func removePage(atIndex index: Int, completion: @escaping () -> Void) {
+    open func removePage(atIndex index: Int, completion: @escaping () -> Void) {
 
         // If removing last item, go back, otherwise, go forward
 
-        let direction: UIPageViewControllerNavigationDirection = index < self.itemsDataSource.itemCount() ? .forward : .reverse
+        let direction: UIPageViewControllerNavigationDirection = index < self.itemsDataSource?.itemCount() ?? 0 ? .forward : .reverse
 
         let newIndex = direction == .forward ? index : index - 1
 
@@ -487,7 +490,7 @@ open class GalleryViewController: UIPageViewController, ItemControllerDelegate {
 
     open func reload(atIndex index: Int) {
 
-        guard index >= 0 && index < self.itemsDataSource.itemCount() else { return }
+        guard index >= 0 && index < self.itemsDataSource?.itemCount() ?? 0 else { return }
 
         guard let firstVC = viewControllers?.first, let itemController = firstVC as? ItemController else { return }
 
